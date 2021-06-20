@@ -1,0 +1,31 @@
+version: '3.0'
+services:
+  db:
+    image: postgres
+    restart: unless-stopped
+    expose:
+      - 5432
+    ports:
+      - 5555:5432
+    volumes: 
+      - ./docker/db:/var/lib/postgresql/data
+    environment: 
+      POSTGRES_DB: musiq
+      POSTGRES_USER: musiq
+      POSTGRES_PASSWORD: musiq
+    networks:
+      - musiq_network
+
+  viewer:
+    image: dpage/pgadmin4
+    restart: unless-stopped
+    ports: 
+      - 9999:80
+    environment: 
+      PGADMIN_DEFAULT_EMAIL: sitdhibong@gmail.com
+      PGADMIN_DEFAULT_PASSWORD: musiq
+    networks:
+      - musiq_network
+
+networks:
+  musiq_network:
