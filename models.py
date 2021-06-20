@@ -13,6 +13,12 @@ class Datetime(Base):
   year = Column(Integer)
   month_name = Column(String)
 
+class Config(Base):
+  __tablename__ = 'config'
+  id = Column(Integer, primary_key=True, autoincrement=True)
+  name = Column(String(50))
+  value = Column(Text)
+
 class Song(Base):
   __tablename__ = 'song'
 
