@@ -29,6 +29,7 @@ class Song(Base):
   cover_image = Column(String)
   link = Column(String)
   lyrics = Column(Text, nullable=True)
+  language = Column(String(10), nullable=True)
 
 class WeeklyStats(Base):
   __tablename__ = 'weekly_stats'
