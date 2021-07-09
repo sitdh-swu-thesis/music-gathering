@@ -31,6 +31,18 @@ class Song(Base):
   lyrics = Column(Text, nullable=True)
   language = Column(String(10), nullable=True)
 
+class SiamzoneSong(Base):
+  __tablename__ = 'siamzone_song'
+
+  id = Column(Integer, primary_key=True, autoincrement=True)
+  song_id = Column(Integer)
+  artist = Column(String)
+  artist_english = Column(String)
+  name = Column(String)
+  lyrics = Column(Text, nullable=True)
+  language = Column(String(10), nullable=True)
+
+
 class WeeklyStats(Base):
   __tablename__ = 'weekly_stats'
   id = Column(Integer, primary_key=True, autoincrement=True)
