@@ -1,0 +1,56 @@
+{% extends 'base.html' %}
+
+{% block content %}
+  <div class="row justify-content-md-center">
+    <div class="col">
+      <p class="fs-2">Musiq</p>
+    </div>
+  </div>
+  <div class="row">
+    <div class="col">
+      <p class="text-center fs-3">
+        Artist: xxxxx
+      </p>
+    </div>
+  </div>
+  <div class="row">
+    <div class="col">
+      <p class="text-center fs-3">
+        Song title: xxxxx
+      </p>
+    </div>
+  </div>
+  <!-- ZXXXX-->
+  <div class="row g-3">
+    <div class="col-10">
+      <div class="input-group">
+        <span class="input-group-text">Thai artist</span>
+        <input type="text" class="form-control" id="artist_thai">
+        <input type="hidden" id="artist_thai_ids">
+      </div>
+    </div>
+
+    <div class="col-1">
+      <div class="input-group">
+        <button class="btn btn-primary" id="commit">
+          Map
+        </button>
+      </div>
+    </div>
+    <div class="col-1">
+      <div class="input-group">
+        <button class="btn btn-secondary" id="skip">
+          Skip
+        </button>
+      </div>
+    </div>
+
+    <div class="col-12">
+      <p>AKA in Thai:</p>
+      <ul id="artist_thai_list">
+        <li>None</li>
+      </ul>
+    </div>
+  </div>
+
+{% endblock %}
