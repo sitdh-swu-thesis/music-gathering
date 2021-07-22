@@ -1,6 +1,8 @@
 from sqlalchemy import Column, Integer, String, Date, Text
 from sqlalchemy.ext.declarative import declarative_base
 
+from musiq import db
+
 Base = declarative_base()
 
 class Datetime(Base):
@@ -19,7 +21,7 @@ class Config(Base):
   name = Column(String(50))
   value = Column(Text)
 
-class Song(Base):
+class Song(Base, db.Model):
   __tablename__ = 'song'
 
   id = Column(Integer, primary_key=True, autoincrement=True)
@@ -31,7 +33,7 @@ class Song(Base):
   lyrics = Column(Text, nullable=True)
   language = Column(String(10), nullable=True)
 
-class SiamzoneSong(Base):
+class SiamzoneSong(Base, db.Model):
   __tablename__ = 'siamzone_song'
 
   id = Column(Integer, primary_key=True, autoincrement=True)
@@ -43,7 +45,7 @@ class SiamzoneSong(Base):
   language = Column(String(10), nullable=True)
 
 
-class WeeklyStats(Base):
+class WeeklyStats(Base, db.Model):
   __tablename__ = 'weekly_stats'
   id = Column(Integer, primary_key=True, autoincrement=True)
   week_id = Column(String)
@@ -55,3 +57,9 @@ class WeeklyStats(Base):
   name = Column(String)
   artist = Column(String)
   streaming_count = Column(Integer)
+
+class ArtistMap(Base, db.Model):
+  __tablename__ = 'artist_map'
+  id = Column(Integer, primary_key=True, autoincrement=True)
+  artist_name_spotify = Column(String)
+  artist_name_siamzone = Column(String)
