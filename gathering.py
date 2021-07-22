@@ -1,5 +1,5 @@
-import os, requests
-from datetime import datetime, timedelta
+import os, requests, time
+from datetime import datetime
 from setup import prepare_env
 from lxml import html
 from sqlalchemy import create_engine
@@ -39,7 +39,6 @@ def url_formator(weekly_set):
 def song_listing(weekly):
   extract_song_path = '//*[@id="content"]/div/div/div/span/table/tbody/tr'
 
-  weekly_song_list = {}
   for week, url in weekly.items():
     print('Getting url:', url)
     [wk_string, _] = week.split('--');
@@ -68,19 +67,51 @@ def song_listing(weekly):
         'track_id': track_id,
         'cover_image': cover_image,
         'song_link': song_link,
-        'position': weekly_position,
+        'position': int(weekly_position),
         'name': song_name,
         'artist': song_artist,
         'streaming_number': streaming_number,
       })
 
     store_song_info(wk, week_key=wk_string, song_list=weekly_song_info)
-    break
+    print('Ending', wk_string)
+    print('Sleeping for', 0.5, 'sec')
+    print()
+    time.sleep(0.5)
 
 def store_song_info(week, week_key=None, song_list=None):
-  print('Week', week)
-  print('Week key', week_key)
-  print('Song list', song_list)
+  from sqlalchemy.orm import Session
+  from models import WeeklyStats, Song
+
+  with Session(engine) as session:
+    for song in song_list:
+      s = None
+      s = session.query(Song).filter(Song.track_id == song['track_id']).first()
+      if s == None:
+        s_info = Song(
+          track_id = song['track_id'],
+          artist = song['artist'],
+          name = song['name'],
+          cover_image = song['cover_image'],
+          link = song['song_link']
+        )
+
+        session.add(s_info)
+        session.commit()
+        s = s_info
+
+      w = WeeklyStats(
+        week_id = week_key,
+        week_date = datetime.strptime(week_key, '%Y-%M-%d').date(),
+        position = song['position'],
+        song = s.id,
+        name = song['name'],
+        artist = song['artist'],
+        streaming_count = song['streaming_number']
+      )
+      session.add(w)
+
+    session.commit()
 
 def db_preparation():
   from models import Base
@@ -88,9 +119,9 @@ def db_preparation():
 
 def main_gathering():
   db_preparation()
-  # dataset = get_date_listing()
-  # url_format = url_formator(dataset)
-  # song_listing(url_format)
+  dataset = get_date_listing()
+  url_format = url_formator(dataset)
+  song_listing(url_format)
 
 if __name__ == '__main__':
   main_gathering()
