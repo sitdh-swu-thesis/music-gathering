@@ -38,24 +38,9 @@ def export_siamzone_artist():
   l = len(song_info)
   app.logger.debug(f'Data found {len(song_info)} record(s)')
 
-  with open('song_table.json', 'w') as f:
-    import json
-    app.logger.debug('Dump data to file')
-    json.dump(song_info, f)
-    app.logger.debug('Done')
-
-if not os.path.isfile('song_table.json'):
-  app.logger.debug('song_table.json file not found')
-  export_siamzone_artist()
-
 @app.route("/")
 def index():
-  songs = []
-  with open('song_table.json') as f:
-    import json
-    songs = json.load(f)
-    
-  return render_template('index.html', songs=songs)
+  return render_template('index.html')
 
 @app.route('/api/artist/next')
 def next_artist():
