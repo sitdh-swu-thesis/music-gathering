@@ -8,15 +8,8 @@
   </div>
   <div class="row">
     <div class="col">
-      <p class="text-center fs-3">
-        Artist: xxxxx
-      </p>
-    </div>
-  </div>
-  <div class="row">
-    <div class="col">
-      <p class="text-center fs-3">
-        Song title: xxxxx
+      <p class="text-center fs-3 justify-content-md-center">
+        <span id="artist_name">XXXXX</span>
       </p>
     </div>
   </div>
@@ -47,10 +40,91 @@
 
     <div class="col-12">
       <p>AKA in Thai:</p>
-      <ul id="artist_thai_list">
-        <li>None</li>
-      </ul>
+
+      <div id="artist_thai_list">
+      </div>
     </div>
   </div>
 
+{% endblock %}
+
+{% block footer_script %}
+  <script>
+    $(function() {
+      fetch_next_artist()
+
+      $('#artist_thai').on('keypress', function (e) {
+        if (e.which == 13) {
+          search_for_artist($('#artist_thai').val())
+        }
+      })
+
+      $('#commit').click(function () {
+        let artist = $('#artist_name').text()
+        console.log('Commit ' + artist)
+        selected_artist = $('.artist_pack.bg-danger').get()
+        name_fetch = []
+        for (i=0; i < selected_artist.length; i++) {
+          name_fetch.push(selected_artist[i].text)
+        }
+        console.log(name_fetch)
+        send_data(artist, name_fetch, fetch_next_artist)
+        console.log('Done')
+      })
+
+      $('#skip').click(function () {
+        let artist = $('#artist_name').text()
+        console.log('skip ' + artist)
+        send_data(artist, [], fetch_next_artist)
+      })
+
+      $(document).on('click', '.artist_pack', function (e) {
+        if ($(this).hasClass('bg-dark')) {
+          $(this).removeClass('bg-dark').addClass('bg-danger')
+        } else if ($(this).hasClass('bg-danger')) {
+          $(this).removeClass('bg-danger').addClass('bg-dark')
+        }
+      })
+      function send_data(eng_artist, maps, f) {
+        $.ajax({
+          type: 'POST',
+          url: '/api/map/artist',
+          contentType: 'application/json',
+          data: JSON.stringify({
+            'spotify_artist': eng_artist,
+            'mapped_artists': maps
+          })
+        }).done(function (e) {
+          console.log('DONE, fetch new artist')
+          f()
+        })
+
+      }
+
+      function search_for_artist(artist) {
+        $('#artist_thai_list').text('')
+        $.ajax({
+          url: '/api/artist/search/' + artist
+        }).done(function (e) {
+          e.forEach(a => {
+            $('#artist_thai_list').append(
+              '<a href="#" class="badge bg-dark artist_pack">' + a.artist_thai + '</a>&nbsp;'
+            )
+            console.log(a.artist_thai)
+          });
+        })
+      }
+
+      function fetch_next_artist() {
+        $.ajax({
+          url: '/api/artist/next'
+        }).done(function (e) {
+          $('#artist_name').text(e.artist)
+          console.log(e.artist)
+          $('#artist_thai_list').text('')
+          $('#artist_thai').val('')
+        })
+      }
+    })
+  </script>
 {% endblock %}
