@@ -12,7 +12,7 @@ app.config.from_mapping(
 if os.path.isfile('config.cfg'):
   pass
 
-app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql+psycopg2://musiq:musiq@localhost:5555/musiq'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql+psycopg2://musiq:musiq@localhost:4444/musiq'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = True
 
 db = SQLAlchemy(app)
@@ -42,6 +42,10 @@ def export_siamzone_artist():
 def index():
   return render_template('index.html')
 
+@app.route("/lyric")
+def lyric():
+  return render_template('lyric.html')
+
 @app.route('/api/artist/next')
 def next_artist():
   from models import ArtistMap, Song
@@ -51,6 +55,54 @@ def next_artist():
   return make_response(jsonify({
     'artist': None if 0 == len(song_artist) else song_artist[0],
   }), 200)
+
+@app.route('/api/thai/song')
+def next_song():
+  from models import Song
+  s = [s for s in Song.query.filter(
+      Song.lyrics == None,
+      Song.language == 'TH'
+    ).limit(1)]
+  print(s)
+  status_code = 404
+  if len(s):
+    s = s[0]
+    s = {
+      'track_id': s.track_id,
+      'artist': s.artist,
+      'name': s.name,
+    }
+    status_code = 200
+  else:
+    s = None
+
+  return make_response(jsonify({
+    'song': s if s else None
+  }), status_code)
+
+  # song_artist = [a.artist for a in Song.query.filter(~Song.artist.in_(artist_list)).limit(1)]
+  # return make_response(jsonify({
+  #   'artist': None if 0 == len(song_artist) else song_artist[0],
+  # }), 200)
+
+@app.route('/api/song/search/<string:q>')
+def search_song(q):
+  from models import SiamzoneSong
+
+  songs = []
+  songs_results = SiamzoneSong.query.with_entities(SiamzoneSong.artist, SiamzoneSong.name, SiamzoneSong.lyrics).distinct().filter(SiamzoneSong.name.like(f'%{q}%'))
+  for song in songs_results:
+    songs.append({
+      'artist': song.artist,
+      'name': song.name,
+      'lyric': song.lyrics,
+    })
+
+  return make_response(
+    jsonify(songs),
+    200 if len(songs) > 0 else 404
+  )
+
 
 @app.route('/api/artist/search/<string:q>')
 def search_artist(q):
@@ -68,6 +120,25 @@ def search_artist(q):
   return make_response(
     jsonify(artists),
     200 if len(artists) > 0 else 404
+  )
+
+@app.route('/api/song/lyric/update', methods=['POST'])
+def update_song_lyric():
+  from flask import request
+  from models import Song
+
+  content = request.json
+
+  num_rows = Song.query.filter(Song.track_id == content.get('track_id')).update({
+    'lyrics': content.get('lyric')
+  })
+  db.session.commit()
+
+  return make_response(
+    jsonify({
+      'update_row': num_rows
+    }),
+    201 if num_rows else 200
   )
 
 @app.route('/api/map/artist', methods=['POST'])

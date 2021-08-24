@@ -1,4 +1,4 @@
-import requests, time
+import requests, time, random
 from lxml import html
 from gathering import db_preparation
 
@@ -25,7 +25,6 @@ def siamzone_scrap(start = 1, stop = 1):
       except:
         continue
 
-
       song_info = tree.xpath(song_info_xpath)
       if 2 == len(song_info):
         [artist_name, _] = [c.strip() for c in song_info]
@@ -37,20 +36,23 @@ def siamzone_scrap(start = 1, stop = 1):
         artist_name_en = artist_name.strip()[artist_name.index('(')+1:-1].strip()
 
       lyric_body = "\n".join([c.strip() for c in tree.xpath(lyric_xpath) if len(c.strip()) > 0])
-      
+
       song = SiamzoneSong(
         song_id = i,
-        name = song_title,
-        artist = artist_name,
-        artist_english = artist_name_en,
-        lyrics = lyric_body
+        name = stryp(song_title),
+        artist = stryp(artist_name),
+        artist_english = stryp(artist_name_en),
+        lyrics = stryp(lyric_body)
       )
       session.add(song)
 
       session.commit()
-      print(i, ':', song_title, 'by', artist)
-      time.sleep(1)
+      print(f'{i}:', song_title, '-', artist)
+      time.sleep(random.random() + 0.5)
+
+def stryp(k):
+  return k.strip() if k else None
 
 if __name__ == '__main__':
   db_preparation()
-  siamzone_scrap(start=20915, stop=21419)
+  siamzone_scrap(start=17914, stop=21785)

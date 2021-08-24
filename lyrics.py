@@ -17,12 +17,17 @@ meemodel_lyrics_endpoint = os.environ.get('MEEMODEL_LYRICS_ENDPOINT')
 
 def query_lyrics(name, artist=None):
   query_url = os.environ.get('MEEMODEL_ENDPOINT')
-  p = requests.post(
-    query_url,
-    data={
-      'text': str(name)
-    }
-  )
+  p = None
+  try:
+    p = requests.post(
+      query_url,
+      data={
+        'text': str(name)
+      }
+    )
+  except:
+    print('Error----------')
+    return None
 
   bs = BeautifulSoup(p.text, 'html.parser') 
   [result_found] = [s.find('strong') for s in bs.find_all('div', class_='info fz16')]
@@ -60,10 +65,14 @@ def query_lyrics(name, artist=None):
 
 def lyrics_query(url):
   lyrics_endpoint = f'{meemodel_lyrics_endpoint}{url}'
-  response = requests.get(lyrics_endpoint)
+  lyrics = None
+  try:
+    response = requests.get(lyrics_endpoint)
 
-  bs = BeautifulSoup(response.text, 'html.parser')
-  lyrics = bs.find('div', {'class': 'lyric', 'id': 'lyric'}).text
+    bs = BeautifulSoup(response.text, 'html.parser')
+    lyrics = bs.find('div', {'class': 'lyric', 'id': 'lyric'}).text
+  except:
+    pass
 
   return lyrics
 
@@ -79,6 +88,7 @@ def cleanup(song_name):
   return song_name
 
 def update_lyrics():
+  import random
   from sqlalchemy.orm import Session
 
   with Session(engine) as session:
@@ -93,12 +103,14 @@ def update_lyrics():
 
       if lyrics:
         print('Lyrics found and update')
-        song.lyrics = lyrics
-        session.commit()
+        song.lyrics = lyrics.strip()
+      else:
+        song.lyrics = ""
+      session.commit()
 
       print('-' * 10)
 
-      time.sleep(1)
+      time.sleep(random.random() + random.randint(1, 3))
 
 if __name__ == '__main__':
   update_lyrics()

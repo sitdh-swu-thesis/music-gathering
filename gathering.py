@@ -9,7 +9,7 @@ prepare_env()
 splash_url_format = os.environ.get('SPLASH_ENDPOINT')
 
 engine = create_engine(
-  'postgresql+psycopg2://musiq:musiq@localhost:5555/musiq',
+  'postgresql+psycopg2://musiq:musiq@localhost:4444/musiq',
   client_encoding="utf8"
 )
 
@@ -24,25 +24,31 @@ def get_date_listing():
   response = requests.get(splash_url(spotify_weekly_url))
   tree = html.fromstring(response.content)
   weekly = tree.xpath(weekly_listing_path)
+
+  weekly_index = {}
+  for l in [w for w in weekly if int(w[:4]) >= 2017]:
+    k, _ = l.split('--')
+    weekly_index[k] = l.strip()
   
-  return [w for w in weekly if int(w[:4]) >= 2017]
+  return weekly_index
 
 def url_formator(weekly_set):
   endpoint_url = os.environ.get('DOMAIN')
 
   weekly = {}
-  for w in weekly_set:
-    weekly[w] = f'{endpoint_url}/{w}'
+  for i, w in weekly_set.items():
+    weekly[i] = f'{endpoint_url}/{w}'
+
+  weekly = {i: f'{endpoint_url}/{w}' for i, w in weekly_set.items()}
 
   return weekly
 
 def song_listing(weekly):
   extract_song_path = '//*[@id="content"]/div/div/div/span/table/tbody/tr'
 
-  for week, url in weekly.items():
+  for wk_string, url in weekly.items():
     print('Getting url:', url)
-    [wk_string, _] = week.split('--');
-    wk = datetime.strptime(wk_string, '%Y-%M-%d').date()
+    wk = datetime.strptime(wk_string, '%Y-%m-%d').date()
     response = requests.get(splash_url(url))
 
     song_listing = html.fromstring(response.content)
@@ -96,13 +102,16 @@ def store_song_info(week, week_key=None, song_list=None):
           link = song['song_link']
         )
 
-        session.add(s_info)
-        session.commit()
-        s = s_info
+        try:
+          session.add(s_info)
+          session.commit()
+          s = s_info
+        except:
+          pass
 
       w = WeeklyStats(
-        week_id = week_key,
-        week_date = datetime.strptime(week_key, '%Y-%M-%d').date(),
+        week_id = week.strftime('%Y-%m-%d'),
+        week_date = week,
         position = song['position'],
         song = s.id,
         name = song['name'],

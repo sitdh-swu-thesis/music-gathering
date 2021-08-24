@@ -1,0 +1,138 @@
+{% extends 'base.html' %}
+
+{% block content %}
+  <div class="row justify-content-md-center">
+    <div class="col">
+      <p class="fs-2">Musiq</p>
+    </div>
+  </div>
+  <div class="row">
+    <div class="col">
+      <p class="fs-3 justify-content-md-center">
+        <span id="artist_name">XXXXX</span>
+        - 
+        <span id="song_title">XXXXX</span>
+        <input type="hidden" id="track_id" value="" />
+      </p>
+    </div>
+  </div>
+  <!-- ZXXXX-->
+  <div class="row g-3">
+    <div class="col-12">
+      <div class="input-group">
+        <span class="input-group-text">Lyric</span>
+        <textarea name="song_lyric" class="form-control" id="song_lyric" rows="10"></textarea>
+      </div>
+    </div>
+
+    <p>Siamzone:</p>
+    <form class="form-inline">
+      <div class="form-group mb-2">
+        <input type="text" id="search_song" class="form-control" placeholder="Song title">
+      </div>
+
+      <button id="search_for_song_title" class="btn btn-primary mb-2">Search</button>
+      <button id="submit_lyric" class="btn btn-secondary mb-2">Submit</button>
+      <button id="copy_and_submit" class="btn btn-secondary mb-2">Copy & Submit</button>
+    </form>
+  </div>
+
+  <div class="row g-3">
+    <div class="col-12">&nbsp;</div>
+    <div class="col-6">
+      LIST
+      <ul id="song_found">
+      </ul>
+    </div>
+    <div class="col-6">
+      <textarea id="search_lyric" class="form-control" disabled="true" rows="15"></textarea>
+    </div>
+  </div>
+
+{% endblock %}
+
+{% block footer_script %}
+  <script>
+    $(function() {
+      fetch_next_song()
+
+      $('#search_for_song_title').on('click', function (e) {
+        e.preventDefault()
+
+        let song_title = $('#search_song').val()
+
+        search_for_songs(song_title, data => {
+          data.forEach(d => {
+            $('#song_found').append(
+              `<li><a href="#" class="badge bg-dark song_pack" data-lyric="${d.lyric}">${d.artist} - ${d.name}</a></li>`
+            )
+          })
+        })
+      })
+
+      $(document).on('click', '.song_pack', function (e) {
+        e.preventDefault()
+        $('#search_lyric').val(
+          $(this).data('lyric')
+        )
+      })
+
+      $('#copy_and_submit').on('click', function (e) {
+        e.preventDefault()
+
+        $('#song_lyric').val(
+          $('#search_lyric').val()
+        )
+
+        lyric_submit_info()
+      })
+
+      $('#submit_lyric').on('click', function (e) {
+        e.preventDefault()
+
+        lyric_submit_info()
+      })
+
+      // ----------------------------------------------------------------------
+
+      function lyric_submit_info() {
+        $.ajax({
+          type: 'POST',
+          url: '/api/song/lyric/update',
+          contentType: 'application/json',
+          data: JSON.stringify({
+            'track_id': $('#track_id').val(),
+            'lyric': $('#song_lyric').val(),
+          }),
+        }).done(function (e) {
+          console.log(e)
+          console.log('------')
+
+          fetch_next_song()
+        })
+      }
+
+      function search_for_songs(song_name, process) {
+        $.ajax({
+          url: '/api/song/search/' + song_name
+        }).done(process)
+      }
+
+      function fetch_next_song() {
+        $.ajax({
+          url: '/api/thai/song'
+        }).done(function (e) {
+          console.log(e.song.artist)
+          $('#artist_name').text(e.song.artist)
+          $('#search_song').val(e.song.name)
+          $('#song_title').text(e.song.name)
+          $('#track_id').val(e.song.track_id)
+
+          $('#song_found').text('')
+          $('#search_lyric').val('')
+          $('#song_lyric').val('')
+        })
+      }
+    })
+  </script>
+{% endblock %}
