@@ -1,4 +1,7 @@
-from sqlalchemy import Column, Integer, String, Date, Text
+from datetime import datetime
+from enum import auto
+from sqlalchemy import Column, Integer, String, Date, Text, DateTime, BigInteger, ForeignKey
+from sqlalchemy.orm import relation, relationship
 from sqlalchemy.ext.declarative import declarative_base
 
 from musiq import db
@@ -63,3 +66,47 @@ class ArtistMap(Base, db.Model):
   id = Column(Integer, primary_key=True, autoincrement=True)
   artist_name_spotify = Column(String)
   artist_name_siamzone = Column(String)
+
+class Emotion(Base, db.Model):
+  __tablename__ = 'emotion'
+
+  id = Column(Integer, primary_key=True, autoincrement=True)
+  emotion_title = Column(String)
+  emotion_mappings = relationship('EmotionMapping', back_populates='emotion')
+
+
+class User(Base, db.Model):
+  __tablename__ = 'user'
+
+  id = Column(Integer, primary_key=True, autoincrement=True)
+  username = Column(String)
+  email = Column(String)
+  access_token = Column(String)
+  created_at = Column(DateTime)
+  updated_at = Column(DateTime, default=datetime.utcnow)
+
+  access_log = relationship('AccessLog', back_populates='user')
+
+class AccessLog(Base, db.Model):
+  __tablename__ = 'access_log'
+
+  id = Column(Integer, primary_key=True, autoincrement=True)
+  access_date = Column(DateTime, default=datetime.utcnow)
+  user_id = Column(Integer, ForeignKey('user.id')) 
+  user = relationship('User', back_populates='access_log') 
+
+class EmotionMapping(Base, db.Model):
+  __tablename__ = 'emotion_mapping'
+
+  id = Column(BigInteger, primary_key=True, autoincrement=True)
+  user_id = Column(Integer, ForeignKey('user.id'))
+  user = relationship('User', backref='emotion_mapping')
+
+  song_id = Column(Integer, ForeignKey('song.id'))
+  song = relationship('Song', backref='emotion_mapping')
+
+  emotion_id = Column(Integer, ForeignKey('emotion.id'))
+  emotion = relationship('Emotion', back_populates='emotion_mapping')
+
+  created_at = Column(DateTime)
+  updated_at = Column(DateTime, default=datetime.utcnow)
