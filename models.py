@@ -1,5 +1,4 @@
 from datetime import datetime
-from enum import auto
 from sqlalchemy import Column, Integer, String, Date, Text, DateTime, BigInteger, ForeignKey
 from sqlalchemy.orm import relation, relationship
 from sqlalchemy.ext.declarative import declarative_base

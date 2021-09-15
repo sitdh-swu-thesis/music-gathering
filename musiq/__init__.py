@@ -1,5 +1,6 @@
-import json
-import os
+# from gathering import song_listing
+from musiq.utils import prepare_music_list
+import os, logging
 from flask import Flask, render_template, jsonify, make_response, request
 from flask_sqlalchemy import SQLAlchemy
 from requests import models
@@ -16,6 +17,22 @@ app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql+psycopg2://musiq:musiq@local
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = True
 
 db = SQLAlchemy(app)
+
+def all_musics():
+  import random
+
+  from sqlalchemy import and_
+  from models import Song
+
+  songs = [s.id for s in Song.query.filter(
+    Song.language == 'TH',
+    Song.lyrics != None
+  ).all()]
+
+  for _ in range(1, random.randint(3, 11)):
+    random.shuffle(songs)
+
+  return songs
 
 def export_siamzone_artist():
   from models import SiamzoneSong
@@ -42,10 +59,6 @@ def export_siamzone_artist():
 def index():
   return render_template('index.html')
 
-@app.route("/lyric")
-def lyric():
-  return render_template('lyric.html')
-
 @app.route('/api/artist/next')
 def next_artist():
   from models import ArtistMap, Song
@@ -63,7 +76,6 @@ def next_song():
       Song.lyrics == None,
       Song.language == 'TH'
     ).limit(1)]
-  print(s)
   status_code = 404
   if len(s):
     s = s[0]
@@ -169,3 +181,108 @@ def map_artist():
   db.session.commit()
 
   return make_response(jsonify(content), 200)
+
+# /********************
+# / Emotion
+# /********************
+
+# View 
+# - - -
+# Display form
+@app.route("/lyric/<string:access_token>")
+def lyric(access_token):
+  return render_template('lyric.html')
+
+# API
+# - - -
+# Create user 
+
+@app.route('/api/user/new', methods=['POST'])
+def user_create_new_user():
+  from flask import request
+  from datetime import datetime
+  from musiq.utils import new_user_extract, access_key
+
+  from models import User
+  import string, random, datetime
+
+  '''
+    - timestamp: "m/d/yyyy H:M:s" -> "9/15/2021 20:38:45"
+    - email: hello@example.com
+    - consent_accept: yes, no
+    - firstname: john
+    - lastname: doe
+  '''
+  user_info = new_user_extract(request.json)
+  app_datetime = datetime.datetime.utcnow()
+
+  user_access_key = access_key(
+    user_info['email'],
+    user_info.get('timestamp'),
+    app_datetime
+  )
+
+  status_code = 400
+  response_message = {
+    'code': 4000,
+    'name': 'Invalid email',
+    'describtion': 'Check email and try again',
+  }
+
+
+  try:
+    user = User(
+      username=user_info['email'],
+      email=user_info['email'],
+      access_token=user_access_key,
+      created_at=user_info.get('timestamp'),
+      updated_at=app_datetime,
+    )
+
+    db.session.add(user)
+    db.session.commit()
+
+    prepare_music_list(
+      user.id, all_musics()
+    )
+
+    response_message = {
+      'custom_endpoint': f'https://arokaya.fin/lyric/{user_access_key}' ,
+    }
+
+    status_code = 201
+    logging.info('Create new user')
+  except:
+    pass
+
+  return make_response(
+    jsonify(response_message),
+    status_code
+  )
+
+
+@app.route('/api/emotion/map/next', methods=['GET'])
+def mapping_emotion_next_song():
+
+  return make_response(jsonify({
+    'track_id': 1238,
+    'source': 'https://open.spotify.com/embed/track/5JoSLllHkOdE56kpHU4fi6',
+    'artist': 'Pramote Vilepana',
+    'title': 'คืนที่ดาวเต็มฟ้า',
+    'lyric': '<div class="row justify-content-md-center">' + \
+      '</div><div class="row justify-content-md-center">'.join('ปล่อยให้ใจ เข้าข้างตัวเองทุกที, ว่าจะมี เธออยู่กับฉัน, แม้วันนี้ จะยังไม่มีวันนั้น, ก็จะฝัน จะเฝ้ารอ'.split(', ')) + \
+      "</div>", 
+  }), 200)
+
+@app.route('/api/test', methods=['GET'])
+def api_test():
+  from models import User
+  u = User.query.filter(User.access_token == 'abcd').limit(1)
+
+  e = 'Empty' if u else 'Found'
+
+  return make_response(jsonify({
+    'result': e,
+  }), 200)
+
+  

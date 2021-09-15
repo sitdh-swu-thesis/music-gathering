@@ -128,9 +128,9 @@ def db_preparation():
 
 def main_gathering():
   db_preparation()
-  dataset = get_date_listing()
-  url_format = url_formator(dataset)
-  song_listing(url_format)
+  # dataset = get_date_listing()
+  # url_format = url_formator(dataset)
+  # song_listing(url_format)
 
 if __name__ == '__main__':
   main_gathering()

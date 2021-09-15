@@ -23,5 +23,23 @@ def access_key(email, timestamp, recieve_timestamp):
 
   return f"{serial[:3]}-{serial[3:6]}-{serial[-4:]}".lower()
 
-def prepare_music_list(user):
-  pass
+def prepare_music_list(user, musics):
+  from musiq import db
+  from models import EmotionMapping
+  from datetime import datetime
+
+  process_pass = False
+
+  try:
+    mapping_list = [EmotionMapping(user_id=user, song_id=m, created_at=datetime.now()) for m in musics]
+
+    db.session.add_all(mapping_list)
+    db.session.commit()
+
+    process_pass = True
+  except:
+    pass
+
+  return process_pass
+
+
