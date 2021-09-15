@@ -67,25 +67,15 @@ class ArtistMap(Base, db.Model):
   artist_name_spotify = Column(String)
   artist_name_siamzone = Column(String)
 
-class Emotion(Base, db.Model):
-  __tablename__ = 'emotion'
-
-  id = Column(Integer, primary_key=True, autoincrement=True)
-  emotion_title = Column(String)
-  emotion_mappings = relationship('EmotionMapping', back_populates='emotion')
-
-
 class User(Base, db.Model):
   __tablename__ = 'user'
 
   id = Column(Integer, primary_key=True, autoincrement=True)
   username = Column(String)
-  email = Column(String)
+  email = Column(String, unique=True)
   access_token = Column(String)
   created_at = Column(DateTime)
   updated_at = Column(DateTime, default=datetime.utcnow)
-
-  access_log = relationship('AccessLog', back_populates='user')
 
 class AccessLog(Base, db.Model):
   __tablename__ = 'access_log'
@@ -94,6 +84,14 @@ class AccessLog(Base, db.Model):
   access_date = Column(DateTime, default=datetime.utcnow)
   user_id = Column(Integer, ForeignKey('user.id')) 
   user = relationship('User', back_populates='access_log') 
+
+User.access_log = relationship('AccessLog', order_by=AccessLog.id, back_populates='user')
+
+class Emotion(Base, db.Model):
+  __tablename__ = 'emotion'
+
+  id = Column(Integer, primary_key=True, autoincrement=True)
+  emotion_title = Column(String)
 
 class EmotionMapping(Base, db.Model):
   __tablename__ = 'emotion_mapping'
@@ -110,3 +108,5 @@ class EmotionMapping(Base, db.Model):
 
   created_at = Column(DateTime)
   updated_at = Column(DateTime, default=datetime.utcnow)
+
+Emotion.emotion_mapping = relationship('EmotionMapping', order_by=EmotionMapping.id, back_populates='emotion')

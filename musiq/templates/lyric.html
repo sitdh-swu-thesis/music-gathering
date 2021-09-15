@@ -3,49 +3,73 @@
 {% block content %}
   <div class="row justify-content-md-center">
     <div class="col">
-      <p class="fs-2">Musiq</p>
+      <h1 class="fs-2">Musiq</h1>
     </div>
   </div>
   <div class="row">
     <div class="col">
       <p class="fs-3 justify-content-md-center">
-        <span id="artist_name">XXXXX</span>
+        <span id="artist-name">Pramote</span>
         - 
-        <span id="song_title">XXXXX</span>
-        <input type="hidden" id="track_id" value="" />
+        <span id="song-title">คืนที่ดาว</span>
       </p>
     </div>
   </div>
   <!-- ZXXXX-->
   <div class="row g-3">
-    <div class="col-12">
-      <div class="input-group">
-        <span class="input-group-text">Lyric</span>
-        <textarea name="song_lyric" class="form-control" id="song_lyric" rows="10"></textarea>
-      </div>
+    <div class="col-12" id="spotify-player-embeded">
+      <iframe src="https://open.spotify.com/embed/track/5JoSLllHkOdE56kpHU4fi" 
+        width="100%" height="80" frameBorder="0" 
+        allowtransparency="true" allow="encrypted-media">
+      </iframe>
     </div>
+  </div>
 
-    <p>Siamzone:</p>
+  <div class="row g-3 justify-content-md-center text-center">
     <form class="form-inline">
-      <div class="form-group mb-2">
-        <input type="text" id="search_song" class="form-control" placeholder="Song title">
-      </div>
-
-      <button id="search_for_song_title" class="btn btn-primary mb-2">Search</button>
-      <button id="submit_lyric" class="btn btn-secondary mb-2">Submit</button>
-      <button id="copy_and_submit" class="btn btn-secondary mb-2">Copy & Submit</button>
+      <input type="hidden" id="track_id" value="" />
+      <input type="hidden" id="access_token" value="" />
+      <button data-emotion="1" class="emotion_map btn btn-primary mb-2">Emotion 1</button>
+      <button data-emotion="2" class="emotion_map btn btn-primary mb-2">Emotion 2</button>
+      <button data-emotion="3" class="emotion_map btn btn-primary mb-2">Emotion 3</button>
+      <button data-emotion="4" class="emotion_map btn btn-primary mb-2">Emotion 4</button>
     </form>
   </div>
 
-  <div class="row g-3">
-    <div class="col-12">&nbsp;</div>
-    <div class="col-6">
-      LIST
-      <ul id="song_found">
-      </ul>
-    </div>
-    <div class="col-6">
-      <textarea id="search_lyric" class="form-control" disabled="true" rows="15"></textarea>
+  <div class="row">
+    <p class="lead">Lyrics</p>
+    <div class="col-12" id="lyric-display">
+      <div class="row justify-content-md-center">
+        ปล่อยให้ใจ เข้าข้างตัวเองทุกที <br>
+      </div>
+      <div class="row justify-content-md-center">
+        ว่าจะมี เธออยู่กับฉัน<br>
+        แม้วันนี้ จะยังไม่มีวันนั้น<br>
+      </div>
+      ก็จะฝัน จะเฝ้ารอ
+      เพราะคำว่ารัก จะมีให้เธอเท่านั้น
+      ในใจฉันไม่มีที่ว่างให้ใคร
+      อยากให้วันพรุ่งนี้ เธอรับรู้และเข้าใจ
+      ที่ว่ามีใคร ที่พร่ำเพ้อ
+      ฉันจินตนาการถึงหน้าเธอ
+      ละเมอไปไกล มองไม่เห็นเป็นดาว
+      จันทร์ที่ดูสดใสนั้นเป็นดั่งใจเธอหรือเปล่า
+      หากมันเป็นจริง จะเก็บเอาจันทร์ มาใส่ใจ
+      แม้ไม่รู้ ว่าเธอจะอยู่ไหน
+      ขอฝากใจ ไปถึงหน่อย
+      ใจดวงนี้ อาจยังมีค่าน้อย
+      แต่จะขอ เพียงรักเธอ
+      จา จัด จา จัด จา จ้า ดา...
+      คืนที่ดาวเต็มฟ้า ฉันจินตนาการถึงหน้าเธอ
+      ละเมอไปไกล มองไม่เห็นเป็นดาว
+      จันทร์ที่ดูสดใสนั้นเป็นดั่งใจเธอหรือเปล่า
+      หากมันเป็นจริง จะเก็บเอาจันทร์ ใน...
+      คืนที่ดาวเต็มฟ้า ฉันจินตนาการถึงหน้าเธอ
+      ละเมอไปไกล มองไม่เห็นเป็นดาว
+      จันทร์ที่ดูสดใสนั้นเป็นดั่งใจเธอหรือเปล่า
+      หากมันเป็นจริง จะเก็บเอาจันทร์ ใน...
+      คืนที่ดาวเต็มฟ้า อ้า อา อา...
+      จะเก็บเอาจันทร์ มาใส่ใจ
     </div>
   </div>
 
@@ -120,17 +144,18 @@
 
       function fetch_next_song() {
         $.ajax({
-          url: '/api/thai/song'
+          url: '/api/emotion/map/next'
         }).done(function (e) {
-          console.log(e.song.artist)
-          $('#artist_name').text(e.song.artist)
-          $('#search_song').val(e.song.name)
-          $('#song_title').text(e.song.name)
-          $('#track_id').val(e.song.track_id)
-
-          $('#song_found').text('')
-          $('#search_lyric').val('')
-          $('#song_lyric').val('')
+          console.log(e.source)
+          $('#song-title').text(e.title)
+          $('#artist-name').text(e.artist)
+          $('#spotify-player-embeded').html(
+            `<iframe src="${e.source}" 
+              width="100%" height="80" frameBorder="0" 
+              allowtransparency="true" allow="encrypted-media">
+            </iframe>`
+          )
+          $('#lyric-display').html(e.lyric)
         })
       }
     })
