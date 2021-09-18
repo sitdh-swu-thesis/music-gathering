@@ -1,163 +1,196 @@
 {% extends 'base.html' %}
 
+{% block progress_bar %}
+<div class="content-fluid">
+  <div class="progress">
+    <div class="progress-bar progress-bar-striped progress-bar-animated"
+      id="progress_update"
+      role="progressbar" 
+      aria-valuenow="100" 
+      aria-valuemin="0" 
+      aria-valuemax="100" 
+      style="width: 100%">
+    </div>
+  </div>
+</div>
+{% endblock %}
+
 {% block content %}
-  <div class="row justify-content-md-center">
-    <div class="col">
-      <h1 class="fs-2">Musiq</h1>
-    </div>
-  </div>
-  <div class="row">
-    <div class="col">
-      <p class="fs-3 justify-content-md-center">
-        <span id="artist-name">Pramote</span>
-        - 
-        <span id="song-title">คืนที่ดาว</span>
-      </p>
-    </div>
-  </div>
-  <!-- ZXXXX-->
-  <div class="row g-3">
-    <div class="col-12" id="spotify-player-embeded">
-      <iframe src="https://open.spotify.com/embed/track/5JoSLllHkOdE56kpHU4fi" 
-        width="100%" height="80" frameBorder="0" 
-        allowtransparency="true" allow="encrypted-media">
-      </iframe>
-    </div>
-  </div>
-
-  <div class="row g-3 justify-content-md-center text-center">
-    <form class="form-inline">
-      <input type="hidden" id="track_id" value="" />
-      <input type="hidden" id="access_token" value="" />
-      <button data-emotion="1" class="emotion_map btn btn-primary mb-2">Emotion 1</button>
-      <button data-emotion="2" class="emotion_map btn btn-primary mb-2">Emotion 2</button>
-      <button data-emotion="3" class="emotion_map btn btn-primary mb-2">Emotion 3</button>
-      <button data-emotion="4" class="emotion_map btn btn-primary mb-2">Emotion 4</button>
-    </form>
-  </div>
-
-  <div class="row">
-    <p class="lead">Lyrics</p>
-    <div class="col-12" id="lyric-display">
-      <div class="row justify-content-md-center">
-        ปล่อยให้ใจ เข้าข้างตัวเองทุกที <br>
+  {% if data.authorized %}
+    <div class="row justify-content-md-center">
+      <input type="hidden" id="access_token" data-access_token="{{ data.token }}" />
+      <div class="col">
+        <h1 class="fs-2">Musiq</h1>
       </div>
-      <div class="row justify-content-md-center">
-        ว่าจะมี เธออยู่กับฉัน<br>
-        แม้วันนี้ จะยังไม่มีวันนั้น<br>
-      </div>
-      ก็จะฝัน จะเฝ้ารอ
-      เพราะคำว่ารัก จะมีให้เธอเท่านั้น
-      ในใจฉันไม่มีที่ว่างให้ใคร
-      อยากให้วันพรุ่งนี้ เธอรับรู้และเข้าใจ
-      ที่ว่ามีใคร ที่พร่ำเพ้อ
-      ฉันจินตนาการถึงหน้าเธอ
-      ละเมอไปไกล มองไม่เห็นเป็นดาว
-      จันทร์ที่ดูสดใสนั้นเป็นดั่งใจเธอหรือเปล่า
-      หากมันเป็นจริง จะเก็บเอาจันทร์ มาใส่ใจ
-      แม้ไม่รู้ ว่าเธอจะอยู่ไหน
-      ขอฝากใจ ไปถึงหน่อย
-      ใจดวงนี้ อาจยังมีค่าน้อย
-      แต่จะขอ เพียงรักเธอ
-      จา จัด จา จัด จา จ้า ดา...
-      คืนที่ดาวเต็มฟ้า ฉันจินตนาการถึงหน้าเธอ
-      ละเมอไปไกล มองไม่เห็นเป็นดาว
-      จันทร์ที่ดูสดใสนั้นเป็นดั่งใจเธอหรือเปล่า
-      หากมันเป็นจริง จะเก็บเอาจันทร์ ใน...
-      คืนที่ดาวเต็มฟ้า ฉันจินตนาการถึงหน้าเธอ
-      ละเมอไปไกล มองไม่เห็นเป็นดาว
-      จันทร์ที่ดูสดใสนั้นเป็นดั่งใจเธอหรือเปล่า
-      หากมันเป็นจริง จะเก็บเอาจันทร์ ใน...
-      คืนที่ดาวเต็มฟ้า อ้า อา อา...
-      จะเก็บเอาจันทร์ มาใส่ใจ
     </div>
-  </div>
+    <div class="row">
+      <div class="col">
+        <p class="fs-3 justify-content-md-center">
+          <a id="spotify_link" href="https://open.spotify.com/track/5JoSLllHkOdE56kpHU4fi6" title="Pramote - คืนที่ดาวเต็มฟ้า" target="_blank">
+            <span id="artist-name">Pramote</span>
+            - 
+            <span id="song-title">คืนที่ดาว</span>
+          </a>
+        </p>
+      </div>
+    </div>
+    <!-- ZXXXX-->
+    <div class="row g-3">
+      <div class="col-12" id="spotify-player-embeded">
+        <iframe src="" 
+          width="100%" height="80" frameBorder="0" 
+          allowtransparency="true" allow="encrypted-media">
+        </iframe>
+      </div>
+    </div>
 
+    <div class="row g-3 justify-content-md-center text-center">
+      <form class="form-inline" id="emotion_map_tools">
+        <input type="hidden" id="track_id" value="" />
+        <input type="hidden" id="user_token" value="{{ data.token }}" />
+      </form>
+    </div>
+
+    <div class="row">
+      <p class="lead">Lyrics</p>
+      <div class="col-12" id="lyric-display">
+      </div>
+    </div>
+
+  {% else %}
+    <div class="row" style="margin: 50px auto;">
+      <h1 class="display-4">ไม่พบผู้ใช้งาน</h1>
+    </div>
+    <div class="row justify-content-md-center">
+      <img src="/static/img/{{ data.cover }}.jpeg" class="rounded mx-auto d-block" style="width: auto; max-height: 500px;" alt="Responsive image" />
+    </div>
+    <div class="row justify-content-md-center">
+      <div class="text-center">
+        <a class="display: inline;" class="text-center" href="https://www.happeningandfriends.com/article-detail/248" title="20 อัลบั้มเพลงไทยระดับคุณภาพที่ถูกคนหลงลืมมากที่สุด" target="_blank">happening and friends</a>
+      </div>
+    </div>
+  {% endif %}
 {% endblock %}
 
 {% block footer_script %}
-  <script>
-    $(function() {
-      fetch_next_song()
+  {% if data.authorized %}
+    <script>
+      $(function() {
+        fetch_emotions()
+        fetch_next_song()
 
-      $('#search_for_song_title').on('click', function (e) {
-        e.preventDefault()
+        $(document).keypress(e => {
+          let emotion_id = 0
 
-        let song_title = $('#search_song').val()
+          if ((e.which == 49) || (e.which == 3653)) {
+            emotion_id = 1
+          } else if ((e.which == 50) || (e.which == 47)) {
+            emotion_id = 2
+          } else if ((e.which == 51) || (e.which == 95)) {
+            emotion_id = 3
+          } else if ((e.which == 52) || (e.which == 3616)) {
+            emotion_id = 4
+          }
 
-        search_for_songs(song_title, data => {
-          data.forEach(d => {
-            $('#song_found').append(
-              `<li><a href="#" class="badge bg-dark song_pack" data-lyric="${d.lyric}">${d.artist} - ${d.name}</a></li>`
-            )
+          console.log(e.which)
+
+          let track_id = $('#track_id').val()
+          let access_token = $('#user_token').val()
+
+          send_emotion_mapping(emotion_id, track_id, access_token)
+        })
+
+        $('#search_for_song_title').on('click', function (e) {
+          e.preventDefault()
+
+          let song_title = $('#search_song').val()
+
+          search_for_songs(song_title, data => {
+            data.forEach(d => {
+              $('#song_found').append(
+                `<li><a href="#" class="badge bg-dark song_pack" data-lyric="${d.lyric}">${d.artist} - ${d.name}</a></li>`
+              )
+            })
           })
         })
+
+        $(document).on('click', '.emotion_map.btn', performed_mapping)
+
+        // ----------------------------------------------------------------------
+        function fetch_emotions() {
+          $.ajax({
+            url: '/api/emotions'
+          }).done(e => {
+            e.forEach(d => {
+              $('#emotion_map_tools').append(
+                `<button data-emotion="${d.id}" class="emotion_map btn btn-primary mb-2">${d.title} [${d.id}]</button>&nbsp;`
+              )
+            })
+          })
+        }
+
+        function fetch_next_song() {
+          $.ajax({
+            url: '/api/emotion/map/next/{{ data.token }}',
+          }).done(function (e) {
+            console.log(e.source)
+            $('#song-title').text(e.title)
+            $('#artist-name').text(e.artist)
+
+            $('#progress_update').css(
+              'width',
+              e.progress_percentage
+            )
+            $('#progress_update').css(
+              'aria-valuenow',
+              e.progress_number
+            )
+            $('#progress_update').css(
+              'aria-valuemax',
+              e.progress_total
+            )
+
+            $('#track_id').val(e.track_id)
+            $('#spotify-player-embeded').html(
+              `<iframe src="${e.source}" 
+                width="100%" height="80" frameBorder="0" 
+                allowtransparency="true" allow="encrypted-media">
+              </iframe>`
+            )
+            $('#lyric-display').html(e.lyric)
+            $('#spotify_link').attr('href', e.spotify_link)
+            $('#spotify_link').attr('title', `{e.artist} - {e.title}`)
+          })
+        }
+
+        function performed_mapping(e) {
+          e.preventDefault()
+          let emotion_id = $(this).data('emotion')
+          let track_id = $('#track_id').val()
+          let access_token = $('#user_token').val()
+
+          console.log(`${track_id} - ${emotion_id} = ${access_token}`)
+          send_emotion_mapping(emotion_id, track_id, access_token)
+        }
+
+        function send_emotion_mapping(emotion_id, track_id, access_token) {
+          $.ajax({
+            type: 'POST',
+            contentType: 'application/json',
+            url: '/api/emotion/mapping',
+            data: JSON.stringify({
+              'track': track_id,
+              'emotion': emotion_id,
+              'access_token': access_token
+            })
+          }).done(e => {
+            console.log('Map update')
+            fetch_next_song()
+          }).error(e => {
+            console.log('ERRROR')
+          })
+        }
       })
-
-      $(document).on('click', '.song_pack', function (e) {
-        e.preventDefault()
-        $('#search_lyric').val(
-          $(this).data('lyric')
-        )
-      })
-
-      $('#copy_and_submit').on('click', function (e) {
-        e.preventDefault()
-
-        $('#song_lyric').val(
-          $('#search_lyric').val()
-        )
-
-        lyric_submit_info()
-      })
-
-      $('#submit_lyric').on('click', function (e) {
-        e.preventDefault()
-
-        lyric_submit_info()
-      })
-
-      // ----------------------------------------------------------------------
-
-      function lyric_submit_info() {
-        $.ajax({
-          type: 'POST',
-          url: '/api/song/lyric/update',
-          contentType: 'application/json',
-          data: JSON.stringify({
-            'track_id': $('#track_id').val(),
-            'lyric': $('#song_lyric').val(),
-          }),
-        }).done(function (e) {
-          console.log(e)
-          console.log('------')
-
-          fetch_next_song()
-        })
-      }
-
-      function search_for_songs(song_name, process) {
-        $.ajax({
-          url: '/api/song/search/' + song_name
-        }).done(process)
-      }
-
-      function fetch_next_song() {
-        $.ajax({
-          url: '/api/emotion/map/next'
-        }).done(function (e) {
-          console.log(e.source)
-          $('#song-title').text(e.title)
-          $('#artist-name').text(e.artist)
-          $('#spotify-player-embeded').html(
-            `<iframe src="${e.source}" 
-              width="100%" height="80" frameBorder="0" 
-              allowtransparency="true" allow="encrypted-media">
-            </iframe>`
-          )
-          $('#lyric-display').html(e.lyric)
-        })
-      }
-    })
-  </script>
+    </script>
+  {% endif %}
 {% endblock %}

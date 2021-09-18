@@ -3,7 +3,6 @@ from musiq.utils import prepare_music_list
 import os, logging
 from flask import Flask, render_template, jsonify, make_response, request
 from flask_sqlalchemy import SQLAlchemy
-from requests import models
 
 app = Flask(__name__, instance_relative_config=True)
 app.config.from_mapping(
@@ -17,6 +16,8 @@ app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql+psycopg2://musiq:musiq@local
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = True
 
 db = SQLAlchemy(app)
+
+app_domain = os.getenv('SITE_DOMAIN')
 
 def all_musics():
   import random
@@ -191,7 +192,43 @@ def map_artist():
 # Display form
 @app.route("/lyric/<string:access_token>")
 def lyric(access_token):
-  return render_template('lyric.html')
+  from models import User
+  from sqlalchemy import or_
+
+  authorized = False
+  cover = ''
+
+  user_info = User.query.filter(
+    or_(User.access_token == access_token, User.email == access_token)
+  ).first()
+
+  token = ''
+
+  if user_info:
+    authorized = True
+    app.logger.info(f"{user_info.email} are logging in")
+    token = access_token
+
+  else:
+    import random
+
+    app.logger.info('No user found')
+
+    cover_images = [
+      '01', 'กอหญ้า', 'ดินสอ', 'บทเพลง01', 'มิติ01', 'อย่าสัญญา01', 'ant01', 
+      'automatic0', 'doo', 'dot', 'europe01', 'feel01', 'fruits01', 'nok01',
+      'ploy', 'shit-แตก01', 'subnai01', 'TKO', 'visa02', 'Visionary01',
+    ]
+    random.shuffle(cover_images)
+
+    cover = cover_images[-1]
+
+
+  return render_template('lyric.html', data={
+    'authorized': authorized,
+    'cover': cover,
+    'token': token,
+  })
 
 # API
 # - - -
@@ -247,7 +284,7 @@ def user_create_new_user():
     )
 
     response_message = {
-      'custom_endpoint': f'https://arokaya.fin/lyric/{user_access_key}' ,
+      'custom_endpoint': f'https://{app_domain}/lyric/{user_access_key}' ,
     }
 
     status_code = 201
@@ -260,23 +297,104 @@ def user_create_new_user():
     status_code
   )
 
+def get_user(access_token):
+  from sqlalchemy import or_
+  from models import User
 
-@app.route('/api/emotion/map/next', methods=['GET'])
-def mapping_emotion_next_song():
+  return User.query.filter(
+    (User.access_token == access_token) | (User.email == access_token)
+  ).limit(1).first()
 
-  return make_response(jsonify({
-    'track_id': 1238,
-    'source': 'https://open.spotify.com/embed/track/5JoSLllHkOdE56kpHU4fi6',
-    'artist': 'Pramote Vilepana',
-    'title': 'คืนที่ดาวเต็มฟ้า',
-    'lyric': '<div class="row justify-content-md-center">' + \
-      '</div><div class="row justify-content-md-center">'.join('ปล่อยให้ใจ เข้าข้างตัวเองทุกที, ว่าจะมี เธออยู่กับฉัน, แม้วันนี้ จะยังไม่มีวันนั้น, ก็จะฝัน จะเฝ้ารอ'.split(', ')) + \
-      "</div>", 
-  }), 200)
+def get_lastest_song(user):
+  from models import EmotionMapping
+
+  em = None
+  em = EmotionMapping.query.filter(
+    EmotionMapping.user_id == user.id
+  ).first()
+
+  return em.song if em else None
+
+@app.route('/api/emotion/map/next/<string:access_token>', methods=['GET'])
+def mapping_emotion_next_song(access_token):
+  from musiq.utils import split_lyric, format_join, convert_spotify_url
+  from models import EmotionMapping
+
+  user = get_user(access_token)
+
+  total_track = len([e for e in user.emotion_maps])
+  progress_number = len([e for e in user.emotion_maps if e.emotion_id])
+
+  song = get_lastest_song(user)
+  app.logger.debug(song.name)
+  app.logger.debug(song.artist)
+
+  lyrics = split_lyric(song.lyrics)
+
+  song_info = {}
+
+  if song:
+    song_info = {
+      'progress_total': total_track,
+      'progress_number': progress_number,
+      'progress_percentage': progress_number / total_track,
+      'track_id': song.id,
+      'source': convert_spotify_url(song.link),
+      'spotify_link': song.link,
+      'artist': song.artist,
+      'title': song.name,
+      'lyric': format_join(
+        lyrics, 
+        glue='</div><div class="row justify-content-md-center">',
+        prefix='<div class="row justify-content-md-center">',
+        suffix='</div>',
+      ),
+    }
+
+  return make_response(jsonify(song_info), 200)
+
+@app.route('/api/emotions', methods=['GET'])
+def api_emotion_listing():
+  from models import Emotion
+
+  emotions = [{'id': e.id, 'title': e.emotion_title} for e in Emotion.query.all()]
+
+  return make_response(jsonify(emotions), 200)
+
+@app.route('/api/emotion/mapping', methods=['POST'])
+def api_emotion_mapping():
+  from models import EmotionMapping
+  payload = request.json
+
+  status = 201
+  response = {
+    'code': status,
+    'status': 'Updated',
+  }
+
+  try:
+    user = get_user(payload.get('access_token'))
+
+    em = EmotionMapping.query.filter(
+      EmotionMapping.song_id == int(str(payload.get('track'))),
+      EmotionMapping.user_id == int(str(user.id))
+    ).limit(1).first()
+
+    em.emotion_id = int(str(payload.get('emotion')))
+    db.session.commit()
+  except:
+    status = 501
+    response = {
+      'code': status,
+      'status': 'Failed',
+    }
+
+  return make_response(jsonify(response), status)
 
 @app.route('/api/test', methods=['GET'])
 def api_test():
   from models import User
+
   u = User.query.filter(User.access_token == 'abcd').limit(1)
 
   e = 'Empty' if u else 'Found'
@@ -285,4 +403,4 @@ def api_test():
     'result': e,
   }), 200)
 
-  
+ 

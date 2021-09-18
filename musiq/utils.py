@@ -10,6 +10,15 @@ def new_user_extract(params):
     'lastname': params.get('lastname')
   }
 
+def split_lyric(lyric, splitter=', '):
+  lyrics = lyric.split(', ')
+  return lyrics if len(lyrics) > 1 else lyric.split("\n")
+
+def format_join(lyrics, glue=',', prefix='', suffix=''):
+  longshot = glue.join(lyrics)
+
+  return f"{prefix}{longshot}{suffix}"
+
 def access_key(email, timestamp, recieve_timestamp):
   import os, hashlib, datetime
 
@@ -43,3 +52,5 @@ def prepare_music_list(user, musics):
   return process_pass
 
 
+def convert_spotify_url(source_url):
+  return source_url.replace('com/track', 'com/embed/track')

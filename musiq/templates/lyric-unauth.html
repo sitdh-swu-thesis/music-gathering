@@ -1,0 +1,163 @@
+{% extends 'base.html' %}
+
+{% block content %}
+  <div class="row justify-content-md-center">
+    <div class="col">
+      <h1 class="fs-2">Musiq</h1>
+    </div>
+  </div>
+  <div class="row">
+    <div class="col">
+      <p class="fs-3 justify-content-md-center">
+        <span id="artist-name">Pramote</span>
+        - 
+        <span id="song-title">คืนที่ดาว</span>
+      </p>
+    </div>
+  </div>
+  <!-- ZXXXX-->
+  <div class="row g-3">
+    <div class="col-12" id="spotify-player-embeded">
+      <iframe src="https://open.spotify.com/embed/track/5JoSLllHkOdE56kpHU4fi" 
+        width="100%" height="80" frameBorder="0" 
+        allowtransparency="true" allow="encrypted-media">
+      </iframe>
+    </div>
+  </div>
+
+  <div class="row g-3 justify-content-md-center text-center">
+    <form class="form-inline">
+      <input type="hidden" id="track_id" value="" />
+      <input type="hidden" id="access_token" value="" />
+      <button data-emotion="1" class="emotion_map btn btn-primary mb-2">Emotion 1</button>
+      <button data-emotion="2" class="emotion_map btn btn-primary mb-2">Emotion 2</button>
+      <button data-emotion="3" class="emotion_map btn btn-primary mb-2">Emotion 3</button>
+      <button data-emotion="4" class="emotion_map btn btn-primary mb-2">Emotion 4</button>
+    </form>
+  </div>
+
+  <div class="row">
+    <p class="lead">Lyrics</p>
+    <div class="col-12" id="lyric-display">
+      <div class="row justify-content-md-center">
+        ปล่อยให้ใจ เข้าข้างตัวเองทุกที <br>
+      </div>
+      <div class="row justify-content-md-center">
+        ว่าจะมี เธออยู่กับฉัน<br>
+        แม้วันนี้ จะยังไม่มีวันนั้น<br>
+      </div>
+      ก็จะฝัน จะเฝ้ารอ
+      เพราะคำว่ารัก จะมีให้เธอเท่านั้น
+      ในใจฉันไม่มีที่ว่างให้ใคร
+      อยากให้วันพรุ่งนี้ เธอรับรู้และเข้าใจ
+      ที่ว่ามีใคร ที่พร่ำเพ้อ
+      ฉันจินตนาการถึงหน้าเธอ
+      ละเมอไปไกล มองไม่เห็นเป็นดาว
+      จันทร์ที่ดูสดใสนั้นเป็นดั่งใจเธอหรือเปล่า
+      หากมันเป็นจริง จะเก็บเอาจันทร์ มาใส่ใจ
+      แม้ไม่รู้ ว่าเธอจะอยู่ไหน
+      ขอฝากใจ ไปถึงหน่อย
+      ใจดวงนี้ อาจยังมีค่าน้อย
+      แต่จะขอ เพียงรักเธอ
+      จา จัด จา จัด จา จ้า ดา...
+      คืนที่ดาวเต็มฟ้า ฉันจินตนาการถึงหน้าเธอ
+      ละเมอไปไกล มองไม่เห็นเป็นดาว
+      จันทร์ที่ดูสดใสนั้นเป็นดั่งใจเธอหรือเปล่า
+      หากมันเป็นจริง จะเก็บเอาจันทร์ ใน...
+      คืนที่ดาวเต็มฟ้า ฉันจินตนาการถึงหน้าเธอ
+      ละเมอไปไกล มองไม่เห็นเป็นดาว
+      จันทร์ที่ดูสดใสนั้นเป็นดั่งใจเธอหรือเปล่า
+      หากมันเป็นจริง จะเก็บเอาจันทร์ ใน...
+      คืนที่ดาวเต็มฟ้า อ้า อา อา...
+      จะเก็บเอาจันทร์ มาใส่ใจ
+    </div>
+  </div>
+
+{% endblock %}
+
+{% block footer_script %}
+  <script>
+    $(function() {
+      fetch_next_song()
+
+      $('#search_for_song_title').on('click', function (e) {
+        e.preventDefault()
+
+        let song_title = $('#search_song').val()
+
+        search_for_songs(song_title, data => {
+          data.forEach(d => {
+            $('#song_found').append(
+              `<li><a href="#" class="badge bg-dark song_pack" data-lyric="${d.lyric}">${d.artist} - ${d.name}</a></li>`
+            )
+          })
+        })
+      })
+
+      $(document).on('click', '.song_pack', function (e) {
+        e.preventDefault()
+        $('#search_lyric').val(
+          $(this).data('lyric')
+        )
+      })
+
+      $('#copy_and_submit').on('click', function (e) {
+        e.preventDefault()
+
+        $('#song_lyric').val(
+          $('#search_lyric').val()
+        )
+
+        lyric_submit_info()
+      })
+
+      $('#submit_lyric').on('click', function (e) {
+        e.preventDefault()
+
+        lyric_submit_info()
+      })
+
+      // ----------------------------------------------------------------------
+
+      function lyric_submit_info() {
+        $.ajax({
+          type: 'POST',
+          url: '/api/song/lyric/update',
+          contentType: 'application/json',
+          data: JSON.stringify({
+            'track_id': $('#track_id').val(),
+            'lyric': $('#song_lyric').val(),
+          }),
+        }).done(function (e) {
+          console.log(e)
+          console.log('------')
+
+          fetch_next_song()
+        })
+      }
+
+      function search_for_songs(song_name, process) {
+        $.ajax({
+          url: '/api/song/search/' + song_name
+        }).done(process)
+      }
+
+      function fetch_next_song() {
+        $.ajax({
+          url: '/api/emotion/map/next'
+        }).done(function (e) {
+          console.log(e.source)
+          $('#song-title').text(e.title)
+          $('#artist-name').text(e.artist)
+          $('#spotify-player-embeded').html(
+            `<iframe src="${e.source}" 
+              width="100%" height="80" frameBorder="0" 
+              allowtransparency="true" allow="encrypted-media">
+            </iframe>`
+          )
+          $('#lyric-display').html(e.lyric)
+        })
+      }
+    })
+  </script>
+{% endblock %}

@@ -35,6 +35,8 @@ class Song(Base, db.Model):
   lyrics = Column(Text, nullable=True)
   language = Column(String(10), nullable=True)
 
+  emotion_maps = relationship('EmotionMapping', back_populates='song')
+
 class SiamzoneSong(Base, db.Model):
   __tablename__ = 'siamzone_song'
 
@@ -45,7 +47,6 @@ class SiamzoneSong(Base, db.Model):
   name = Column(String)
   lyrics = Column(Text, nullable=True)
   language = Column(String(10), nullable=True)
-
 
 class WeeklyStats(Base, db.Model):
   __tablename__ = 'weekly_stats'
@@ -76,6 +77,8 @@ class User(Base, db.Model):
   created_at = Column(DateTime)
   updated_at = Column(DateTime, default=datetime.utcnow)
 
+  emotion_maps = relationship('EmotionMapping', back_populates='user')
+
 class AccessLog(Base, db.Model):
   __tablename__ = 'access_log'
 
@@ -92,20 +95,23 @@ class Emotion(Base, db.Model):
   id = Column(Integer, primary_key=True, autoincrement=True)
   emotion_title = Column(String)
 
+  emotion_maps = relationship('EmotionMapping', back_populates="emotion")
+
 class EmotionMapping(Base, db.Model):
   __tablename__ = 'emotion_mapping'
 
   id = Column(BigInteger, primary_key=True, autoincrement=True)
   user_id = Column(Integer, ForeignKey('user.id'))
-  user = relationship('User', backref='emotion_mapping')
+  user = relationship('User', back_populates='emotion_maps')
 
   song_id = Column(Integer, ForeignKey('song.id'))
-  song = relationship('Song', backref='emotion_mapping')
+  song = relationship('Song', back_populates='emotion_maps')
 
   emotion_id = Column(Integer, ForeignKey('emotion.id'))
-  emotion = relationship('Emotion', back_populates='emotion_mapping')
+  emotion = relationship('Emotion', back_populates='emotion_maps')
 
   created_at = Column(DateTime)
   updated_at = Column(DateTime, default=datetime.utcnow)
 
-Emotion.emotion_mapping = relationship('EmotionMapping', order_by=EmotionMapping.id, back_populates='emotion')
+# Emotion.emotion_mapping = relationship('EmotionMapping', order_by=EmotionMapping.id, back_populates='emotions')
+# User.emotion_mapping = relationship('EmotionMapping', order_by=EmotionMapping.id, back_populates='users')
