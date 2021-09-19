@@ -28,7 +28,7 @@ def all_musics():
   songs = [s.id for s in Song.query.filter(
     Song.language == 'TH',
     Song.lyrics != None
-  ).all()]
+  ).limit(200)]
 
   for _ in range(1, random.randint(3, 11)):
     random.shuffle(songs)
